@@ -1,14 +1,18 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 
 	"github.com/d-darac/gator/internal/config"
+	"github.com/d-darac/gator/internal/database"
+	_ "github.com/lib/pq"
 )
 
 type state struct {
 	cfg *config.Config
+	db  *database.Queries
 }
 
 func main() {
@@ -18,8 +22,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	db, err := sql.Open("postgres", cfg.DBURL)
+	if err != nil {
+		fmt.Printf("error opening database connection: %v", err)
+		os.Exit(1)
+	}
+	defer db.Close()
+
 	programState := &state{
 		cfg: &cfg,
+		db:  database.New(db),
 	}
 
 	cmds := commands{
@@ -27,6 +39,7 @@ func main() {
 	}
 
 	cmds.register("login", handlerLogin)
+	cmds.register("register", handlerRegister)
 
 	if len(os.Args) < 2 {
 		fmt.Println("usage: cli <command> [args...]")
