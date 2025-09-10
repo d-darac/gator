@@ -6,7 +6,12 @@ import (
 	"fmt"
 	"html"
 	"io"
+	"log"
 	"net/http"
+	"time"
+
+	"github.com/d-darac/gator/internal/database"
+	"github.com/google/uuid"
 )
 
 type RSSFeed struct {
@@ -32,6 +37,38 @@ func handlerAggregate(s *state, cmd command) error {
 	}
 	unescapeStringFields(feed)
 	fmt.Println(*feed)
+	return nil
+}
+
+func handlerAddFeed(s *state, cmd command) error {
+	if len(cmd.Args) < 2 {
+		return fmt.Errorf("usage: %v <name> <url>", cmd.Name)
+	}
+
+	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("couldn't find user: %w", err)
+	}
+
+	name := cmd.Args[0]
+	url := cmd.Args[1]
+
+	feed, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		Name:      name,
+		Url:       url,
+		UserID:    user.ID,
+	})
+
+	if err != nil {
+		return fmt.Errorf("couldn't create feed: %w", err)
+	}
+
+	log.Println("feed created:")
+	printFeed(feed)
+
 	return nil
 }
 
@@ -77,4 +114,11 @@ func unescapeStringFields(feed *RSSFeed) {
 		item.Title = html.UnescapeString(item.Title)
 		item.Description = html.UnescapeString(item.Description)
 	}
+}
+
+func printFeed(feed database.Feed) {
+	fmt.Printf(" * ID:        %v\n", feed.ID)
+	fmt.Printf(" * Name:      %v\n", feed.Name)
+	fmt.Printf(" * Url:       %v\n", feed.Url)
+	fmt.Printf(" * UserID:    %v\n", feed.UserID)
 }

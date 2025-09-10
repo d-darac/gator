@@ -38,6 +38,7 @@ func main() {
 		registry: make(map[string]func(*state, command) error),
 	}
 
+	cmds.register("addfeed", handlerAddFeed)
 	cmds.register("agg", handlerAggregate)
 	cmds.register("login", handlerLogin)
 	cmds.register("register", handlerRegister)
