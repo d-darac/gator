@@ -72,6 +72,15 @@ func handlerAddFeed(s *state, cmd command) error {
 	return nil
 }
 
+func handlerFeeds(s *state, cmd command) error {
+	feeds, err := s.db.GetFeeds(context.Background())
+	if err != nil {
+		return fmt.Errorf("couldn't get feeds: %w", err)
+	}
+	printFeeds(feeds)
+	return nil
+}
+
 func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, feedURL, nil)
 	if err != nil {
@@ -121,4 +130,13 @@ func printFeed(feed database.Feed) {
 	fmt.Printf(" * Name:      %v\n", feed.Name)
 	fmt.Printf(" * Url:       %v\n", feed.Url)
 	fmt.Printf(" * UserID:    %v\n", feed.UserID)
+}
+
+func printFeeds(feeds []database.GetFeedsRow) {
+	for _, feed := range feeds {
+		fmt.Printf(" * ID:           %v\n", feed.ID)
+		fmt.Printf("   * Name:         %v\n", feed.Name)
+		fmt.Printf("   * Url:          %v\n", feed.Url)
+		fmt.Printf("   * User Name:    %v\n", feed.UserName)
+	}
 }
