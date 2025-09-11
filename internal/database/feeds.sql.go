@@ -68,33 +68,25 @@ func (q *Queries) GetFeedByUrl(ctx context.Context, url string) (Feed, error) {
 }
 
 const getFeeds = `-- name: GetFeeds :many
-SELECT feeds.ID, feeds.name, feeds.url, users.name AS user_name
-FROM feeds
-INNER JOIN users
-ON feeds.user_id = users.id
+SELECT id, created_at, updated_at, name, url, user_id FROM feeds
 `
 
-type GetFeedsRow struct {
-	ID       uuid.UUID
-	Name     string
-	Url      string
-	UserName string
-}
-
-func (q *Queries) GetFeeds(ctx context.Context) ([]GetFeedsRow, error) {
+func (q *Queries) GetFeeds(ctx context.Context) ([]Feed, error) {
 	rows, err := q.db.QueryContext(ctx, getFeeds)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetFeedsRow
+	var items []Feed
 	for rows.Next() {
-		var i GetFeedsRow
+		var i Feed
 		if err := rows.Scan(
 			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 			&i.Name,
 			&i.Url,
-			&i.UserName,
+			&i.UserID,
 		); err != nil {
 			return nil, err
 		}
