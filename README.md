@@ -93,8 +93,6 @@ gator <command> [args...]
 
   (Fetches new posts every 10 minutes.)
 
----
-
 - **Browse your feed posts:**
 
   ```
